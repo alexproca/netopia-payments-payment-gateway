@@ -2,7 +2,7 @@
 
 /*
 Plugin Name: NETOPIA Payments Payment Gateway
-Plugin URI: https://www.netopia-payments.com
+Plugin URI: https://www.netopia-payments.ro
 Description: accept payments through NETOPIA Payments
 Author: Netopia
 Version: 1.0
@@ -27,5 +27,14 @@ function netopiapayments_init() {
 	function add_netopiapayments_gateway( $methods ) {
 		$methods[] = 'netopiapayments';
 		return $methods;
+	}
+
+	// Add custom action links
+	add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'netopia_action_links' );
+	function netopia_action_links( $links ) {
+		$plugin_links = array(
+			'<a href="' . admin_url( 'admin.php?page=wc-settings&tab=checkout&section=netopiapayments' ) . '">' . __( 'Settings', 'netopiapayments' ) . '</a>',
+		);
+		return array_merge( $plugin_links, $links );
 	}
 }
