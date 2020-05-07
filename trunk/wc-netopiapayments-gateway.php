@@ -531,15 +531,17 @@ class netopiapayments extends WC_Payment_Gateway {
 								$refund = wc_create_refund($args);	
 								 
 								$errorMessage = $objPmReq->objPmNotify->errorMessage;
-								$message = 	'Thank you for shopping with us. <br />However, the transaction wasn\'t successful, payment wasn\'t received.';
+								$message = 	'Plata rambursata.';
 								//Add Customer Order Note
 			                   	$order->add_order_note($message.'<br />NETOPIA Transaction ID: '.$transaction_id, 1);
 
 			                    //Add Admin Order Note
 			                  	$order->add_order_note($message.'<br />NETOPIA Transaction ID: '.$transaction_id);
 
-				                //Update the order status
+								//Update the order status if fully refunded
+								if ($refund_amount == $objPmReq->objPmNotify->originalAmount) {
 								$order->update_status('refunded', '');
+								}
 							    break;	
 			    		}
 					}else{
