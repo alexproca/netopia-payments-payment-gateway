@@ -1,8 +1,7 @@
 <?php
 class netopiapayments extends WC_Payment_Gateway {
 	// Setup our Gateway's id, description and other values
-	function __construct() {	
-		
+	function __construct() {
 		$this->id = "netopiapayments";
 		$this->method_title = __( "NETOPIA Payments", 'netopiapayments' );
 		$this->method_description = __( "NETOPIA Payments Payment Gateway Plug-in for WooCommerce", 'netopiapayments' );
@@ -26,9 +25,6 @@ class netopiapayments extends WC_Payment_Gateway {
 			$this->$setting_key = $value;
 		}
 		
-		// Lets check for SSL
-		add_action( 'admin_notices', array( $this,	'do_ssl_check' ) );
-		
 		add_action('init', array(&$this, 'check_netopiapayments_response'));
 		//update for woocommerce >2.0
 		add_action( 'woocommerce_api_' . strtolower( get_class( $this ) ), array( $this, 'check_netopiapayments_response' ) );
@@ -39,8 +35,9 @@ class netopiapayments extends WC_Payment_Gateway {
 			// Save our administration options. Since we are not going to be doing anything special
 			// we have not defined 'process_admin_options' in this class so the method in the parent
 			// class will be used instead
+
 			add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
-		}	
+		}
 
 		add_action('woocommerce_receipt_netopiapayments', array(&$this, 'receipt_page'));
 	} // End __construct()	
@@ -73,12 +70,36 @@ class netopiapayments extends WC_Payment_Gateway {
 				'desc_tip'	=> __( 'Payment description the customer will see during the checkout process.', 'netopiapayments' ),				
 				'css'		=> 'max-width:350px;'
 			),
+			'key_setting' => array(
+                'title'       => __( 'Login to Netopia and go to Admin-> Conturi de comerciant->Modifica (iconita creionas)->tab-ul Setari securitate', 'netopiapayments' ),
+                'type'        => 'title',
+                'description' => '',
+            ),
 			'account_id' => array(
 				'title'		=> __( 'Seller Account ID', 'netopiapayments' ),
 				'type'		=> 'text',
 				'desc_tip'	=> __( 'This is Account ID provided by Netopia when you signed up for an account. Unique key for your seller account for the payment process.', 'netopiapayments' ),
-				'description' => __( 'Login to Netopia and go to Admin-> Conturi de comerciant->Modifica (iconita creionas)->tab-ul Setari securitate', 'netopiapayments' ),
 			),
+            'live_cer' => array(
+                'title'		=> __( 'Live public key: ', 'netopiapayments' ),
+                'type'		=> 'file',
+                'desc_tip'	=> is_null($this->get_option('live_cer')) ?  __( 'Download the Certificat digital mobilPay™ from Netopia and upload here', 'netopiapayments' ) : $this->get_option('live_cer'),
+            ),
+            'live_key' => array(
+                'title'		=> __( 'Live private key: ', 'netopiapayments' ),
+                'type'		=> 'file',
+                'desc_tip'	=> is_null($this->get_option('live_key')) ? __( 'Download the Certificat merchant account / Privated key™ from Netopia and upload here', 'netopiapayments' ) : $this->get_option('live_key'),
+            ),
+            'sandbox_cer' => array(
+                'title'		=> __( 'Sandbox public key: ', 'netopiapayments' ),
+                'type'		=> 'file',
+                'desc_tip'	=> is_null($this->get_option('sandbox_cer')) ? __( 'Download the Sandbox Certificat digital mobilPay™ from Netopia and upload here', 'netopiapayments' ) : $this->get_option('sandbox_cer'),
+            ),
+            'sandbox_key' => array(
+                'title'		=> __( 'Sandbox private key: ', 'netopiapayments' ),
+                'type'		=> 'file',
+                'desc_tip'	=> is_null($this->get_option('sandbox_key')) ? __( 'Download the Sandbox Certificat merchant account / Privated key™ from Netopia and upload here', 'netopiapayments' ) : $this->get_option('sandbox_key'),
+            ),
 			'payment_methods'   => array(
 		        'title'       => __( 'Payment methods', 'netopiapayments' ),
 		        'type'        => 'multiselect',
@@ -101,7 +122,7 @@ class netopiapayments extends WC_Payment_Gateway {
 				'type'		=> 'text',
 				'desc_tip'	=> __( 'This is Service Code provided by Netopia when you signed up for an account.', 'netopiapayments' ),
 				'description' => __( 'Login to Netopia and go to Admin -> Conturi de comerciant -> Produse si servicii -> Semnul plus', 'netopiapayments' ),
-			),	
+			),
 		);		
 	}
 
@@ -332,7 +353,7 @@ class netopiapayments extends WC_Payment_Gateway {
 				jQuery("#submit_netopia_payment_form").click();});
 				</script>
 			</form>';
-		} catch (\Throwable $th) {
+		} catch (\Exception $e) {
 			// throw $th;
 			echo '<p><i style="color:red">Asigura-te ca ai incarcat toate cele 4 chei de securitate, 2 pentru mediul live, 2 pentru mediul sandbox! Citeste cu atentie instructiunile din manual!</i></p>
 				 <p style="font-size:small">Ai in continuare probleme? Trimite-ne doua screenshot-uri la <a href="mailto:implementare@netopia.ro">implementare@netopia.ro</a>, unul cu setarile metodei de plata din adminul wordpress si unul cu locatia in care ai incarcat cheile (de preferat sa se vada denumirea completa a cheilor si calea completa a locatiei)</p>';
@@ -621,4 +642,121 @@ class netopiapayments extends WC_Payment_Gateway {
 		file_put_contents($file, $contents."\n", FILE_APPEND);			
 	}
 
+    public function process_admin_options() {
+        $this->init_settings();
+        $post_data = $this->get_post_data();
+        $cerValidation = $this->cerValidation();
+
+        foreach ( $this->get_form_fields() as $key => $field ) {
+            if ( ('title' !== $this->get_field_type( $field )) && ('file' !== $this->get_field_type( $field ))) {
+                try {
+                    $this->settings[ $key ] = $this->get_field_value( $key, $field, $post_data );
+                } catch ( Exception $e ) {
+                    $this->add_error( $e->getMessage() );
+                }
+            }
+
+            if ( 'file' === $this->get_field_type( $field )) {
+                    try {
+                        if($_FILES['woocommerce_netopiapayments_'.$key]['size'] != 0 ) {
+                            $strMessage = $cerValidation[$key]['type']. ' - ' .$cerValidation[$key]['message'];
+                            $this->settings[ $key ] = $this->validate_text_field( $key, $strMessage );
+                        }
+                    } catch ( Exception $e ) {
+                        $this->add_error( $e->getMessage() );
+                    }
+            }
+        }
+        return update_option( $this->get_option_key(), apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings ), 'yes' );
+    }
+
+    public function cerValidation() {
+	    if(!$this->_canManageWcSettings()){
+            die(); // User can not manage Woocommerce Plugin
+        }
+
+        $allowed_extension = array("key", "cer", "pem");
+        foreach ($_FILES as $key => $fileInput){
+
+            $file_extension = pathinfo($fileInput["name"], PATHINFO_EXTENSION);
+            $file_mime = $fileInput["type"];
+
+            // Validate file input to check if is not empty
+            if (! file_exists($fileInput["tmp_name"])) {
+                $response = array(
+                    "type" => "error",
+                    "message" => "Select file to upload."
+                );
+            }// Validate file input to check if is with valid extension
+            elseif (! in_array($file_extension, $allowed_extension)) {
+                $response = array(
+                    "type" => "error",
+                    "message" => "Upload valid certificate. Only .cer / .key are allowed."
+                );
+            }// Validate file MIME
+            else {
+                  if ($this->sanitizeVerify($file_extension, $key)){
+                    $response = $this->uploadCer($fileInput);
+                    } else {
+                        $response = array(
+                            "type" => "error",
+                            "message" => "The file is not sanitized / suitable for this field!!"
+                        );
+                    }
+                 }
+
+            // Generate Status
+            switch ($key) {
+                case "woocommerce_netopiapayments_live_cer" :
+                    $status['live_cer'] = $response;
+                    break;
+                case "woocommerce_netopiapayments_live_key" :
+                    $status['live_key'] = $response;
+                    break;
+                case "woocommerce_netopiapayments_sandbox_cer" :
+                    $status['sandbox_cer'] = $response;
+                    break;
+                case "woocommerce_netopiapayments_sandbox_key" :
+                    $status['sandbox_key'] = $response;
+                    break;
+            }
+        }
+        return $status;
+    }
+
+    public function sanitizeVerify($file_extension, $key) {
+        switch ($key) {
+            case "woocommerce_netopiapayments_live_cer" :
+            case "woocommerce_netopiapayments_sandbox_cer" :
+                if ($file_extension != 'cer')
+                    return false;
+                break;
+            case "woocommerce_netopiapayments_live_key" :
+            case "woocommerce_netopiapayments_sandbox_key" :
+                if ($file_extension != 'key')
+                    return false;
+                break;
+        }
+        return true;
+    }
+
+    public function uploadCer($fileInput) {
+        $target = plugin_dir_path( __FILE__ ).'netopia/'.basename($fileInput["name"]);
+        if (move_uploaded_file($fileInput["tmp_name"], $target)) {
+            $response = array(
+                "type" => "success",
+                "message" => "Certificate uploaded successfully."
+            );
+        } else {
+            $response = array(
+                "type" => "error",
+                "message" => "Problem in uploading Certificate."
+            );
+        }
+        return $response;
+    }
+
+    private function _canManageWcSettings() {
+        return current_user_can('manage_woocommerce');
+	}
 }
