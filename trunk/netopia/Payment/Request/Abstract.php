@@ -251,7 +251,7 @@ abstract class Netopia_Payment_Request_Abstract {
 	    throw new Exception('Failed decoding envelope key', self::ERROR_CONFIRM_FAILED_DECODING_ENVELOPE_KEY);
 	}
 	$data = null;
-	$result = @openssl_open($srcData, $data, $srcEnvKey, $privateKey);
+	$result = @openssl_open($srcData, $data, $srcEnvKey, $privateKey, 'RC4');
 	if ($result === false) {
 	    throw new Exception('Failed decrypting data', self::ERROR_CONFIRM_FAILED_DECRYPT_DATA);
 	}
@@ -452,7 +452,7 @@ abstract class Netopia_Payment_Request_Abstract {
 	);
 	$encData = null;
 	$envKeys = null;
-	$result = openssl_seal($srcData, $encData, $envKeys, $publicKeys);
+	$result = openssl_seal($srcData, $encData, $envKeys, $publicKeys, 'RC4');
 	if ($result === false) {
 	    $this->outEncData = null;
 	    $this->outEnvKey = null;

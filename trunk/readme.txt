@@ -3,7 +3,7 @@ Contributors: NETOPIA
 Tags: mobilpay, woocommerce, mobilpay card, mobilpay payment gateway, mobilpay for woocommerce, mobilpay romania, mobilpay card for woocommerce, netopia, netopia payments
 Requires at least: 4.0.1
 Tested up to: 5.7
-Stable tag: 1.0
+Stable tag: 1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -46,4 +46,6 @@ NETOPIA Payments Woocommerce Payment Gateway extends WooCommerce payment options
 == Changelog ==
 
 = 1.0 =
-* Initial release (Tested up to WP 5.3.3 with WooCommerce 4.0.1)
+* Initial release (Tested up to WP 5.7 with WooCommerce 4.0.1)
+= 1.1 = 
+* PHP8 openssl fix
