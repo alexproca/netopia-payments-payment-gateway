@@ -252,7 +252,7 @@ class netopiapayments extends WC_Payment_Gateway {
 
 		// Decide which URL to post to
 		$paymentUrl = ( $this->environment == 'yes' ) 
-						   ? 'http://sandboxsecure.mobilpay.ro/'
+						   ? 'https://sandboxsecure.mobilpay.ro/'
 						   : 'https://secure.mobilpay.ro/';
 		if ($this->environment == 'yes') {
 			$x509FilePath = plugin_dir_path( __FILE__ ).'netopia/sandbox.'.$this->account_id.'.public.cer';
