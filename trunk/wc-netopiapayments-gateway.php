@@ -421,6 +421,7 @@ class netopiapayments extends WC_Payment_Gateway {
 								//$objPmReq->objPmNotify->originalAmount
 								//original_amount -> the original amount processed;
 								//processed_amount -> the processed amount at the moment of the response. It can be lower than the original amount, ie for capturing a smaller amount or for a partial credit
+								if( $order->get_status() != 'completed' ) {
 								if( $amount_paid < $amountorder_RON ) {
 					                //Update the order status
 									$order->update_status('on-hold', '');
@@ -496,6 +497,8 @@ class netopiapayments extends WC_Payment_Gateway {
 										wc_empty_cart();
 					                }
 					            }
+							}
+							else {}
 								break;
 							case 'paid':
 								//Update order status -> to be added, but on-hold should work for now
