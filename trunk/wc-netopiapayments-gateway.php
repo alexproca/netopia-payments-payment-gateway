@@ -325,7 +325,8 @@ class netopiapayments extends WC_Payment_Gateway {
 			$objPmReq->invoice->setShippingAddress($shippingAddress);
 		}		
 		
-		$objPmReq->params = array('order_id'=>$order_id,'customer_id'=>$customer_order->get_user_id(),'customer_ip'=>$_SERVER['REMOTE_ADDR'],'method'=>$method);	try {	
+		$objPmReq->params = array('order_id'=>$order_id,'customer_id'=>$customer_order->get_user_id(),'customer_ip'=>$_SERVER['REMOTE_ADDR'],'method'=>$method);	
+		try {	
 		$objPmReq->encrypt($x509FilePath);
 		//echo "<pre>objPmReq: "; print_r($objPmReq); echo "</pre>";
 		return '	<form action="'.$paymentUrl.'" method="post" id="frmPaymentRedirect">
@@ -478,7 +479,7 @@ class netopiapayments extends WC_Payment_Gateway {
 					                	else {
 
 					                		//Update order status
-											$order->update_status( 'completed', 'Payment received, your order is currently being processed.' );
+											$order->update_status( 'processing', 'Payment received, your order is currently being processed.' );
 
 											//Add admin order noote
 						                    $order->add_order_note('Plata prin NETOPIA payments<br />Transaction ID: '.$transaction_id);
