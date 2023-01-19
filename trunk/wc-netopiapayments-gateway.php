@@ -67,8 +67,19 @@ class netopiapayments extends WC_Payment_Gateway {
 			'description' => array(
 				'title'		=> __( 'Description', 'netopiapayments' ),
 				'type'		=> 'textarea',
-				'desc_tip'	=> __( 'Payment description the customer will see during the checkout process.', 'netopiapayments' ),				
-				'css'		=> 'max-width:350px;'
+				'desc_tip'	=> __( 'Payment description the customer will see during the checkout process.', 'netopiapayments' ),
+				'css'		=> 'max-width:350px;',
+			),
+			'default_status' => array(
+				'title'		=> __( 'Default status', 'netopiapayments' ),
+				'type'		=> 'select',
+				'desc_tip'	=> __( 'Default status of transaction.', 'netopiapayments' ),
+				'default'	=> 'processing',
+				'options' => array(
+					'completed' => __('Completed'),
+					'processing' => __('Processing'),
+				),
+				'css'		=> 'max-width:350px;',
 			),
 			'key_setting' => array(
                 'title'       => __( 'Login to Netopia and go to Admin-> Conturi de comerciant->Modifica (iconita creionas)->tab-ul Setari securitate', 'netopiapayments' ),
@@ -365,8 +376,6 @@ class netopiapayments extends WC_Payment_Gateway {
 	* Check for valid NETOPIA server callback
 	**/
 	function check_netopiapayments_response(){
-		// $this->bpLog('response ========================================');
-		// $this->bpLog($_POST);
 		global $woocommerce;
 
 		require_once 'netopia/Payment/Request/Abstract.php';
@@ -400,11 +409,6 @@ class netopiapayments extends WC_Payment_Gateway {
 					$objPmReq = Netopia_Payment_Request_Abstract::factoryFromEncrypted($_POST['env_key'], $_POST['data'], $privateKeyFilePath);
 					$action = $objPmReq->objPmNotify->action;
 
-					// $this->bpLog('THParams :     ');
-					// $this->bpLog($objPmReq->params);
-					// $this->bpLog('Notify :     ');
-					// $this->bpLog($objPmReq->objPmNotify);
-
 					$params = $objPmReq->params;
 					$order = new WC_Order( $params['order_id'] );
 					$user = new WP_User( $params['customer_id'] );
@@ -417,32 +421,32 @@ class netopiapayments extends WC_Payment_Gateway {
 								//update DB, SET status = "confirmed/captured"
 								$errorMessage = $objPmReq->objPmNotify->errorMessage;
 								
-								$amountorder_RON = $objPmReq->objPmNotify->originalAmount; //$objPmReq->objPmNotify->originalAmount
+								$amountorder_RON = $objPmReq->objPmNotify->originalAmount; 
 								$amount_paid = is_null($objPmReq->objPmNotify->originalAmount) ? 0:$objPmReq->objPmNotify->originalAmount;
-								//$objPmReq->objPmNotify->originalAmount
+								
 								//original_amount -> the original amount processed;
 								//processed_amount -> the processed amount at the moment of the response. It can be lower than the original amount, ie for capturing a smaller amount or for a partial credit
 								if( $order->get_status() != 'completed' ) {
-								if( $amount_paid < $amountorder_RON ) {
-					                //Update the order status
-									$order->update_status('on-hold', '');
+									if( $amount_paid < $amountorder_RON ) {
+										//Update the order status
+										$order->update_status('on-hold', '');
 
-									//Error Note
-									$message = 'Thank you for shopping with us.<br />Your payment transaction was successful, but the amount paid is not the same as the total order amount.<br />Your order is currently on-hold.<br />Kindly contact us for more information regarding your order and payment status.';
-									$message_type = 'notice';
+										//Error Note
+										$message = 'Thank you for shopping with us.<br />Your payment transaction was successful, but the amount paid is not the same as the total order amount.<br />Your order is currently on-hold.<br />Kindly contact us for more information regarding your order and payment status.';
+										$message_type = 'notice';
 
-									//Add Customer Order Note
-				                    $order->add_order_note($message.'<br />Netopia Transaction ID: '.$transaction_id, 1);
+										//Add Customer Order Note
+										$order->add_order_note($message.'<br />Netopia Transaction ID: '.$transaction_id, 1);
 
-				                    //Add Admin Order Note
-				                    $order->add_order_note('Look into this order. <br />This order is currently on hold.<br />Reason: Amount paid is less than the total order amount.<br />Amount Paid was &#8358; '.$amount_paid.' RON while the total order amount is &#8358; '.$amountorder_RON.' RON<br />Netopia Transaction ID: '.$transaction_id);
+										//Add Admin Order Note
+										$order->add_order_note('Look into this order. <br />This order is currently on hold.<br />Reason: Amount paid is less than the total order amount.<br />Amount Paid was &#8358; '.$amount_paid.' RON while the total order amount is &#8358; '.$amountorder_RON.' RON<br />Netopia Transaction ID: '.$transaction_id);
 
-									// Reduce stock levels
-									wc_reduce_stock_levels($order->get_id());
+										// Reduce stock levels
+										wc_reduce_stock_levels($order->get_id());
 
-									// Empty cart
-									wc_empty_cart();
-								}
+										// Empty cart
+										wc_empty_cart();
+									}
 								else {
 									if( $order->get_status() == 'processing' ) {
 					                    $order->add_order_note('Plata prin NETOPIA payments<br />Transaction ID: '.$transaction_id);
@@ -460,7 +464,6 @@ class netopiapayments extends WC_Payment_Gateway {
 										//$message_type = 'success';
 					                }
 					                else {
-
 					                	if( $order->has_downloadable_item() ) {
 
 					                		//Update order status
@@ -479,7 +482,8 @@ class netopiapayments extends WC_Payment_Gateway {
 					                	else {
 
 					                		//Update order status
-											$order->update_status( 'processing', 'Payment received, your order is currently being processed.' );
+											$msgDefaultStatus = ($this->default_status == 'processing') ? 'Payment received, your order is currently being processed.' : 'Payment received, your order is now complete.';
+											$order->update_status( $this->default_status, $msgDefaultStatus );
 
 											//Add admin order noote
 						                    $order->add_order_note('Plata prin NETOPIA payments<br />Transaction ID: '.$transaction_id);
@@ -751,6 +755,7 @@ class netopiapayments extends WC_Payment_Gateway {
                 "type" => "success",
                 "message" => "Certificate uploaded successfully."
             );
+			chmod($target, 0444);  // Every group have permition to just read it
         } else {
             $response = array(
                 "type" => "error",
