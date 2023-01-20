@@ -44,10 +44,11 @@ NETOPIA Payments Woocommerce Payment Gateway extends WooCommerce payment options
 `screenshot-2.png`
 
 == Changelog ==
-
+Please note that **on first automatic update** your `private.key` and `public.cer` will be removed and **the plugin needs to be reconfigured**!
 = 1.0 =
 * Initial release (Tested up to WP 5.7 with WooCommerce 4.0.1)
 = 1.1 = 
 * PHP8 openssl fix
 = 1.1.1 =
-* default status set to processing 
+* chmod on security keys 
+* added select status option 
