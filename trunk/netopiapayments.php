@@ -29,8 +29,6 @@ function netopiapayments_init() {
 		return $methods;
 	}
 
-    add_action( 'admin_enqueue_scripts', 'netopiapaymentsjs_init' );
-
 	// Add custom action links
 	add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'netopia_action_links' );
 	function netopia_action_links( $links ) {
@@ -40,6 +38,7 @@ function netopiapayments_init() {
 		return array_merge( $plugin_links, $links );
 	}
 
+	add_action( 'admin_enqueue_scripts', 'netopiapaymentsjs_init' );
     function netopiapaymentsjs_init($hook) {
         if ( 'woocommerce_page_wc-settings' != $hook ) {
             return;
@@ -48,4 +47,15 @@ function netopiapayments_init() {
         wp_enqueue_script( 'netopiatoastrjs', plugin_dir_url( __FILE__ ) . 'js/toastr.min.js',array(),'2.0' ,true);
         wp_enqueue_style( 'netopiatoastrcss', plugin_dir_url( __FILE__ ) . 'css/toastr.min.css',array(),'2.0' ,false);
     }
+}
+
+
+/**
+ * Activation hook  once after install / update will execute
+ * By "verify-regenerat" key will verify if certifications not exist
+ * Then try to regenerated the certifications
+ * */ 
+register_activation_hook( __FILE__, 'plugin_activated' );
+function plugin_activated(){
+	add_option( 'woocommerce_netopiapayments_certifications', 'verify-and-regenerate' );
 }
