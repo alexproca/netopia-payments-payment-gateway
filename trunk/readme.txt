@@ -20,6 +20,11 @@ NETOPIA Payments Woocommerce Payment Gateway extends WooCommerce payment options
 * Accepts payments with Visa and Mastercard credit/debit cards, Bitcoin and Ethereum
 * Handles IPN responses and automatically changes order status on your shop in real time (confirmed/paid or failure messages and refunds).
 
+= Requirements: =
+Please note that **on first update** your `private.key` and `public.cer` could be removed and **the plugin might need to be reconfigured**!
+* PHP 7+
+* openssl and dom extensions
+
 == Installation ==
 
 1. Install the plugin through the WordPress plugins screen directly (recommended) or upload `netopiapayments` to the `/wp-content/plugins/` directory using your favourite FTP client.
@@ -44,7 +49,7 @@ NETOPIA Payments Woocommerce Payment Gateway extends WooCommerce payment options
 `screenshot-2.png`
 
 == Changelog ==
-Please note that **on first update** your `private.key` and `public.cer` will be removed and **the plugin needs to be reconfigured**!
+Please note that **on first update** your `private.key` and `public.cer` could be removed and **the plugin might need to be reconfigured**!
 = 1.0 =
 * Initial release (Tested up to WP 5.7 with WooCommerce 4.0.1)
 = 1.1 = 
@@ -52,3 +57,6 @@ Please note that **on first update** your `private.key` and `public.cer` will be
 = 1.1.1 =
 * chmod on security keys 
 * added select status option 
+= 1.3 = 
+* keep keys on auto update
+* add openssl aes256 cipher option

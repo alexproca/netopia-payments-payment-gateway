@@ -5,7 +5,7 @@ Plugin Name: NETOPIA Payments Payment Gateway
 Plugin URI: https://www.netopia-payments.ro
 Description: accept payments through NETOPIA Payments
 Author: Netopia
-Version: 1.0
+Version: 1.3
 License: GPLv2
 */
 
