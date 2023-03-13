@@ -223,7 +223,7 @@ class netopiapayments extends WC_Payment_Gateway {
 					$method, 
 					add_query_arg(
 						'key', 
-						$order->order_key, 
+						$order->get_order_key(), 
 						$checkout_payment_url						
 					)
 				)
@@ -827,10 +827,10 @@ class netopiapayments extends WC_Payment_Gateway {
 		$i = 0;	
 		$cartSummary = array();	
 		foreach ($cartArr as $key => $value ) {	
-			$cartSummary[$i]['name'] 				=  $value['data']->name;	
-			$cartSummary[$i]['price'] 			=  $value['data']->price;	
+			$cartSummary[$i]['name'] 				=  $value['data']->get_name();	
+			$cartSummary[$i]['price'] 			=  $value['data']->get_price();	
 			$cartSummary[$i]['quantity'] 			=  $value['quantity'];	
-			$cartSummary[$i]['short_description'] =  substr($value['data']->short_description, 0, 100);	
+			$cartSummary[$i]['short_description'] =  substr($value['data']->get_short_description(), 0, 100);	
 			$i++;	
 		}	
 		return json_encode($cartSummary);	
